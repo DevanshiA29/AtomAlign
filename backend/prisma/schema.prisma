@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String      @id @default(uuid())
+  clerkUserId   String?     @unique
+  staffCode     String?     @unique
+  name          String
+  email         String      @unique
+  password      String
+  role          String      @default("Employee") // 'Employee', 'Manager', 'Admin'
+  managerId     String?
+  department    String?
+  dateOfJoining DateTime?
+  phone         String?
+  title         String?
+  location      String?
+  bio           String?
+  websiteUrl    String?
+  linkedinUrl   String?
+  githubUrl     String?
+  avatarUrl     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  manager       User?       @relation("ManagerToEmployee", fields: [managerId], references: [id])
+  employees     User[]      @relation("ManagerToEmployee")
+  goalSheets    GoalSheet[]
+}
+
+model GoalSheet {
+  id         String     @id @default(uuid())
+  userId     String
+  fiscalYear String
+  status     String     @default("Draft") // 'Draft', 'Pending Approval', 'Locked', 'Returned for Rework'
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items      GoalItem[]
+
+  @@unique([userId, fiscalYear, status]) // Need a way to differentiate multiple drafts or maybe just allow many
+}
+
+model GoalItem {
+  id          String    @id @default(uuid())
+  sheetId     String
+  thrustArea  String?
+  title       String?
+  description String?
+  uom         String?   // 'Numeric', '%', 'Timeline', 'Zero-based'
+  targetValue String?   // Changed to string to support dates
+  weightage   Int?
+  type        String?   @default("Individual") // 'Individual', 'Shared'
+  
+  // JSON fields to store quarterly data flexibly
+  actualAchievements Json? @default("{\"Q1\": \"\", \"Q2\": \"\", \"Q3\": \"\", \"Q4\": \"\"}")
+  status             Json? @default("{\"Q1\": \"Not Started\", \"Q2\": \"Not Started\", \"Q3\": \"Not Started\", \"Q4\": \"Not Started\"}")
+  managerComments    Json? @default("{\"Q1\": \"\", \"Q2\": \"\", \"Q3\": \"\", \"Q4\": \"\"}")
+
+  goalSheet   GoalSheet @relation(fields: [sheetId], references: [id], onDelete: Cascade)
+}

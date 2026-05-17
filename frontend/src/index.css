@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Theme (Default) */
+    --color-atomPink: 236 72 153;    /* #ec4899 */
+    --color-atomPurple: 139 92 246;  /* #8b5cf6 */
+    --color-bg: 248 250 252;         /* #f8fafc */
+    --color-card: rgba(255, 255, 255, 0.8);
+    --color-text: 15 23 42;          /* #0f172a */
+    --color-textMuted: 100 116 139;  /* #64748b */
+    --color-border: rgba(15, 23, 42, 0.1);
+  }
+
+  .dark {
+    /* Dark Theme */
+    --color-atomPink: 236 72 153;
+    --color-atomPurple: 139 92 246;
+    --color-bg: 11 15 25;            /* #0B0F19 */
+    --color-card: rgba(255, 255, 255, 0.05);
+    --color-text: 241 245 249;       /* #f1f5f9 */
+    --color-textMuted: 148 163 184;  /* #94a3b8 */
+    --color-border: rgba(255, 255, 255, 0.1);
+  }
+
+  .purple {
+    /* Purple Theme */
+    --color-atomPink: 244 114 182;   /* #f472b6 */
+    --color-atomPurple: 192 132 252; /* #c084fc */
+    --color-bg: 30 27 75;            /* #1e1b4b */
+    --color-card: rgba(255, 255, 255, 0.1);
+    --color-text: 250 245 255;       /* #faf5ff */
+    --color-textMuted: 216 180 254;  /* #d8b4fe */
+    --color-border: rgba(216, 180, 254, 0.2);
+  }
+
+  body {
+    @apply bg-darkBg text-textColor font-sans antialiased transition-colors duration-300;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-darkCard backdrop-blur-md border border-borderColor rounded-xl shadow-xl transition-all duration-300;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-atomPink to-atomPurple text-white px-6 py-2 rounded-lg font-medium shadow-lg hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] hover:scale-[1.02] transition-all active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply bg-transparent text-textColor border border-borderColor px-6 py-2 rounded-lg font-medium hover:bg-borderColor transition-all active:scale-95;
+  }
+
+  .input-field {
+    @apply bg-transparent border border-borderColor rounded-lg px-4 py-2 text-textColor focus:outline-none focus:border-atomPink focus:ring-1 focus:ring-atomPink transition-all;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-darkBg;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-borderColor rounded-md;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-textMuted;
+}
