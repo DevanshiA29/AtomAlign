@@ -10,7 +10,7 @@
     
     "seed:admin-demo": "node backend/seedAdminDemo.js",
     "seed:clerk-demo": "node backend/seedClerkDemo.js",
-    "seed:all-demo": "npm run seed:admin-demo && npm run seed:clerk-demo",
+    "seed:all-demo": "npm run backend/seed:admin-demo && npm run backend/seed:clerk-demo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
