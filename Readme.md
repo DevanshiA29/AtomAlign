@@ -39,17 +39,18 @@ atom_align/
     ├── tailwind.config.js    # Neon theme configurations
     └── vite.config.js        # Build pipeline optimization configs
 
-## 🔑 Credential Mapping & Configuration Guides
+## 🔑 Authentication & Workspace Setup
 
 To establish flawless data synchronizations across the application layers, capture and verify your API keys using the exact workspace management screens outlined below.
-For Admin
-email- admin1@test.com
-password - password
 
-For Employee
-email - manager@test.com
-password - password
+---
 
-For Manager
-email - nisha@test.com
-password - password
+### 👥 Test Credentials by Role
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin1@test.com` | `password` |
+| **Manager** | `manager@test.com` | `password` |
+| **Employee** | `nisha@test.com` | `password` |
+
+> ⚠️ **Note:** These credentials are for staging and development verification only. Never commit production API keys or credentials to version control.
