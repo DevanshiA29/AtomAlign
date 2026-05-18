@@ -162,6 +162,27 @@ const AdminConsole = () => {
     department: ''
   });
 
+  const [localCycles, setLocalCycles] = useState([
+    { id: 'q1', cycle: 'Q1', type: 'Quarterly', window: 'Jan - Mar', status: 'OPEN', actionLabel: 'Close' },
+    { id: 'q2', cycle: 'Q2', type: 'Quarterly', window: 'Apr - Jun', status: 'CLOSED', actionLabel: 'Open' },
+    { id: 'q3', cycle: 'Q3', type: 'Quarterly', window: 'Jul - Sep', status: 'CLOSED', actionLabel: 'Open' },
+    { id: 'q4', cycle: 'Q4', type: 'Quarterly', window: 'Oct - Dec', status: 'CLOSED', actionLabel: 'Open' },
+  ]);
+
+  const handleToggleCycle = (id) => {
+    setLocalCycles((prev) => 
+      prev.map((c) => 
+        c.id === id 
+          ? { 
+              ...c, 
+              status: c.status === 'OPEN' ? 'CLOSED' : 'OPEN',
+              actionLabel: c.status === 'OPEN' ? 'Open' : 'Close'
+            } 
+          : c
+      )
+    );
+  };
+
   const copy = pageCopy[activeView];
   const managers = snapshot.users.filter((user) => user.role === 'MANAGER');
 
@@ -300,7 +321,7 @@ const AdminConsole = () => {
     <SectionCard title="Cycle Calendar" subtitle="Quarterly windows can be opened or closed with immediate admin impact.">
       <Table
         columns={['Cycle', 'Type', 'Window', 'Status', 'Action']}
-        rows={snapshot.cycles}
+        rows={localCycles}
         emptyMessage="No cycles configured."
         renderRow={(cycle) => (
           <tr key={cycle.id}>
@@ -312,7 +333,7 @@ const AdminConsole = () => {
             </td>
             <td className="px-5 py-4 text-sm">
               <button
-                onClick={() => toggleCycle(cycle.id)}
+                onClick={() => handleToggleCycle(cycle.id)}
                 className={`${buttonClasses.secondary} border-slate-200 text-slate-700 hover:border-[#245C63] hover:text-[#245C63]`}
               >
                 {cycle.actionLabel}

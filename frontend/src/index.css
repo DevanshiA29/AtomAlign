@@ -73,3 +73,27 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-textMuted;
 }
+
+/* ─── Custom keyframes used inline ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* animation-delay utility helpers */
+.animation-delay-150 { animation-delay: 150ms; }
+.animation-delay-300 { animation-delay: 300ms; }
+.animation-delay-500 { animation-delay: 500ms; }
+
+/* Ensure Syne is used for display headings */
+.font-display { font-family: 'Syne', sans-serif; }
