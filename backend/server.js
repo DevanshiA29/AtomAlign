@@ -18,7 +18,7 @@ app.use('/api/reports/achievements', adminRoutes);
 app.use('/api/portal', portalRoutes);
 
 const PORT = process.env.PORT || 5001;
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.use(express.static(path.join(dir , "/frontend/dist")))
 app.get(/_/,(_,res)=>{
