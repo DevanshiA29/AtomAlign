@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Target, Plus, Save, AlertCircle, CheckCircle2, Lock, Unlock, Calendar, Percent, Hash, CircleSlash, Shield, Send, MessageSquare, RefreshCw, SendToBack, Loader2, Trash2, Search } from 'lucide-react';
-import { useAdminContext } from '../context/AdminContext';
 import { API_URL } from '../lib/api';
 import ProfileWorkbench from '../components/ProfileWorkbench';
+const PORTAL_WINDOWS = { phase1: true, q1: true, q2: false, q3: false, q4: false };
 
 const THRUST_AREAS = [
   'Revenue Growth',
@@ -36,12 +36,11 @@ const EmployeePortal = ({ portalUser }) => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const { windows } = useAdminContext(); 
   const checkInMap = {
-    'Q1': windows.q1,
-    'Q2': windows.q2,
-    'Q3': windows.q3,
-    'Q4': windows.q4
+    'Q1': PORTAL_WINDOWS.q1,
+    'Q2': PORTAL_WINDOWS.q2,
+    'Q3': PORTAL_WINDOWS.q3,
+    'Q4': PORTAL_WINDOWS.q4
   };
 
   const [goals, setGoals] = useState([]);

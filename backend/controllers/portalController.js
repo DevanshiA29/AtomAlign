@@ -92,7 +92,7 @@ const defaultDepartmentByRole = {
   Admin: 'Executive Operations'
 };
 
-const DEMO_ADMIN_EMAIL = 'devanshiawasthi29@gmail.com';
+const APPROVED_ADMIN_EMAILS = new Set(['devanshiawasthi29@gmail.com']);
 const defaultTitleByRole = {
   Employee: 'Individual Contributor',
   Manager: 'People Manager',
@@ -106,13 +106,9 @@ const getRolePrefix = (role) => {
   return 'EMP';
 };
 
-const resolveRole = (requestedRole, email) => {
-  const normalizedEmail = getNormalizedEmail(email);
-  if (normalizedEmail === DEMO_ADMIN_EMAIL) {
+const resolveRole = (requestedRole, normalizedEmail) => {
+  if (requestedRole === 'Admin' && APPROVED_ADMIN_EMAILS.has(normalizedEmail)) {
     return 'Admin';
-  }
-  if (requestedRole === 'Admin') {
-    return null;
   }
   return requestedRole;
 };
@@ -172,15 +168,6 @@ exports.syncPortalUser = async (req, res) => {
     const normalizedEmail = getNormalizedEmail(email);
     const resolvedRole = resolveRole(role, normalizedEmail);
 
-    if (!resolvedRole) {
-      return res.status(403).json({
-        error: 'This email is not authorized for the admin portal.',
-        authorized: false,
-        matchedRole: null,
-        status: 'pending_approval'
-      });
-    }
-
     let user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
       include: {
@@ -196,7 +183,7 @@ exports.syncPortalUser = async (req, res) => {
           email: normalizedEmail,
           clerkUserId: clerkUserId || user.clerkUserId,
           avatarUrl: avatarUrl || user.avatarUrl,
-          role: getNormalizedEmail(user.email) === DEMO_ADMIN_EMAIL ? 'Admin' : user.role,
+          role: user.role,
           department: user.department || defaultDepartmentByRole[user.role] || 'General',
           title: user.title || defaultTitleByRole[user.role] || 'Team Member'
         },
@@ -205,7 +192,7 @@ exports.syncPortalUser = async (req, res) => {
         }
       });
     } else {
-      if (normalizedEmail === DEMO_ADMIN_EMAIL) {
+      if (resolvedRole === 'Admin' && APPROVED_ADMIN_EMAILS.has(normalizedEmail)) {
         user = await prisma.$transaction(async (tx) => {
           const staffCode = await nextStaffCode(tx, resolvedRole);
           return tx.user.create({
@@ -215,9 +202,9 @@ exports.syncPortalUser = async (req, res) => {
               email: normalizedEmail,
               name: name || normalizedEmail.split('@')[0],
               password: '123456789',
-              role: resolvedRole,
-              department: defaultDepartmentByRole[resolvedRole] || 'General',
-              title: defaultTitleByRole[resolvedRole] || 'Team Member',
+              role: 'Admin',
+              department: defaultDepartmentByRole.Admin,
+              title: defaultTitleByRole.Admin,
               avatarUrl
             },
             include: {
@@ -226,12 +213,12 @@ exports.syncPortalUser = async (req, res) => {
           });
         });
       } else {
-        return res.status(403).json({
-          error: 'No approved workforce record was found for this email yet.',
-          authorized: false,
-          matchedRole: null,
-          status: 'pending_approval'
-        });
+      return res.status(403).json({
+        error: 'No approved workforce record was found for this email yet.',
+        authorized: false,
+        matchedRole: null,
+        status: 'pending_approval'
+      });
       }
     }
 

@@ -3,8 +3,48 @@ import { useUser } from '@clerk/clerk-react';
 import { API_URL } from '../lib/api';
 import { PORTAL_CONFIG } from '../lib/portals';
 
-const DEMO_ADMIN_EMAIL = 'devanshiawasthi29@gmail.com';
 const cacheKeyForEmail = (email) => `portal-user:${String(email || '').toLowerCase()}`;
+const SESSION_CACHE_TTL_MS = 5000;
+const inFlightSessionRequests = new Map();
+const recentSessionCache = new Map();
+
+async function fetchPortalSession({ email, name, role, clerkUserId, avatarUrl }) {
+  const requestKey = `${String(email || '').toLowerCase()}::${role}::${clerkUserId || ''}`;
+  const now = Date.now();
+  const cached = recentSessionCache.get(requestKey);
+
+  if (cached && now - cached.timestamp < SESSION_CACHE_TTL_MS) {
+    return cached.payload;
+  }
+
+  if (inFlightSessionRequests.has(requestKey)) {
+    return inFlightSessionRequests.get(requestKey);
+  }
+
+  const requestPromise = fetch(`${API_URL}/portal/session-user`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email,
+      name,
+      role,
+      clerkUserId,
+      avatarUrl
+    })
+  })
+    .then(async (response) => {
+      const data = await response.json();
+      const payload = { ok: response.ok, data };
+      recentSessionCache.set(requestKey, { timestamp: Date.now(), payload });
+      return payload;
+    })
+    .finally(() => {
+      inFlightSessionRequests.delete(requestKey);
+    });
+
+  inFlightSessionRequests.set(requestKey, requestPromise);
+  return requestPromise;
+}
 
 export function usePortalSession(requiredRole) {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -21,6 +61,20 @@ export function usePortalSession(requiredRole) {
     let ignore = false;
 
     async function syncUser() {
+      if (!requiredRole) {
+        if (!ignore) {
+          setState({
+            loading: false,
+            portalUser: null,
+            authorized: false,
+            resolvedRole: null,
+            error: '',
+            status: 'idle'
+          });
+        }
+        return;
+      }
+
       if (!isLoaded) return;
 
       if (!isSignedIn || !user) {
@@ -43,31 +97,27 @@ export function usePortalSession(requiredRole) {
 
       try {
         const email = user.primaryEmailAddress?.emailAddress;
-        const res = await fetch(`${API_URL}/portal/session-user`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-            role: requiredRole,
-            clerkUserId: user.id,
-            avatarUrl: user.imageUrl
-          })
+        const result = await fetchPortalSession({
+          email,
+          name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+          role: requiredRole,
+          clerkUserId: user.id,
+          avatarUrl: user.imageUrl
         });
-        const data = await res.json();
+        const { ok, data } = result;
 
         if (!ignore) {
-          if (res.ok && data.user && email) {
+          if (ok && data.user && email) {
             localStorage.setItem(cacheKeyForEmail(email), JSON.stringify(data.user));
           }
 
           setState({
             loading: false,
             portalUser: data.user || null,
-            authorized: res.ok ? Boolean(data.authorized) : false,
+            authorized: ok ? Boolean(data.authorized) : false,
             resolvedRole: data.matchedRole || data.user?.role || null,
-            error: res.ok ? '' : data.error || 'We could not verify portal access.',
-            status: data.status || (res.ok ? 'approved' : 'pending_approval')
+            error: ok ? '' : data.error || 'We could not verify portal access.',
+            status: data.status || (ok ? 'approved' : 'pending_approval')
           });
         }
       } catch (error) {
@@ -76,23 +126,6 @@ export function usePortalSession(requiredRole) {
           const email = String(user?.primaryEmailAddress?.emailAddress || '').toLowerCase();
           const cachedProfile = email ? localStorage.getItem(cacheKeyForEmail(email)) : null;
           const parsedProfile = cachedProfile ? JSON.parse(cachedProfile) : null;
-
-          if (email === DEMO_ADMIN_EMAIL) {
-            setState({
-              loading: false,
-              portalUser: parsedProfile || {
-                email,
-                name: user?.fullName || 'Devanshi Awasthi',
-                role: 'Admin',
-                staffCode: 'ADM-0001'
-              },
-              authorized: requiredRole === 'Admin',
-              resolvedRole: 'Admin',
-              error: '',
-              status: requiredRole === 'Admin' ? 'approved' : 'wrong_portal'
-            });
-            return;
-          }
 
           if (parsedProfile?.role) {
             setState({
@@ -130,6 +163,6 @@ export function usePortalSession(requiredRole) {
     isLoaded,
     isSignedIn,
     clerkUser: user,
-    signInPath: PORTAL_CONFIG[requiredRole].signInPath
+    signInPath: requiredRole ? PORTAL_CONFIG[requiredRole].signInPath : '/'
   };
 }
