@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
-    "seed:admin-demo": "node seedAdminDemo.js",
-    "seed:clerk-demo": "node seedClerkDemo.js",
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
+    "build":"npm install && npm install --prefix frontend && npm run build --prefix frontend",
+    
+    "seed:admin-demo": "node backend/seedAdminDemo.js",
+    "seed:clerk-demo": "node backend/seedClerkDemo.js",
     "seed:all-demo": "npm run seed:admin-demo && npm run seed:clerk-demo",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
